@@ -22,12 +22,26 @@ def lift_or_drag_coefficient(l,d, r, u,s):
     return l/coef, d/coef
 
 
-def plot_force(force, aoa, type):
+def plot_force(force, aoa, name):
     plt.figure()
     plt.plot(aoa, force)
     plt.xlabel("angle d'attaque")
-    plt.ylabel(type)
-    plt.title("Lift coefficient " if type == "Cl" else "drag coefficient")
+    plt.ylabel("$"+name+"$")
+    plt.title("coefficient de lift " if name == "C_l" else "coefficient de drag")
+
+
+def mean_pressure(p):
+    return np.mean(p)
+
+def plot_polar(l,d):
+    plt.figure()
+    plt.plot(d, l, label="donées expérimentale")
+    plt.xlabel("$C_d$")
+    plt.ylabel("$C_l$")
+    plt.legend()
+    plt.title("Polaire de l'aile")
+
+
 
 if __name__ == '__main__':
 
@@ -43,7 +57,14 @@ if __name__ == '__main__':
     # Data from laboratory
     angle, drag, lift, p_dyn = extraction('Data.txt')
 
+    # mean dynamic pressure
+    p_mean = mean_pressure(p_dyn)
+
     cl, cd = lift_or_drag_coefficient(lift, drag, rho, u_infinity, surface)
-    plot_force(lift, angle, "Cl")
-    plot_force(drag, angle, "Cd")
+    plot_force(lift, angle, "C_l")
+    plot_force(drag, angle, "C_d")
+
+    plot_polar(lift, drag)
+
+
     plt.show()
