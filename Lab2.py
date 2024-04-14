@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 def extraction(file):
     txt = np.loadtxt(file)
     zero = txt[0, :]
-    return np.array(txt[1:, 0]), np.array(txt[1:, 1])-zero[1], np.array(txt[1:, 2])-zero[2], np.array(txt[1:, 3])-zero[3]
+    return (np.array(txt[1:, 0]), np.array(txt[1:, 1])-zero[1],
+            np.array(txt[1:, 2])-zero[2], np.array(txt[1:, 3])-zero[3])
 
 
-def lift_or_drag_coefficient(l,d, r, u,s):
+def lift_or_drag_coefficient(l, d, r, u, s):
     """
     Non dimensionalise the mesure from the lab for the lift and drag forces
     :param l: lift mesured in the laboratory
@@ -33,19 +34,21 @@ def plot_force(force, aoa, name):
 def regression(l, d):
     return np.poly1d(np.polyfit(d, l, 2))
 
+
 def mean_pressure(p):
     return np.mean(p)
 
-def plot_polar(l,d):
+
+def plot_polar(l, d):
     plt.figure()
     plt.plot(d, l, label="donées expérimentale")
     model = regression(l, d)
-    plt.plot(d, model(d), label="interpolation")
+    ax = np.linspace(0.2,0.7, 100)
+    plt.plot(ax, model(ax), label="interpolation")
     plt.xlabel("$C_d$")
     plt.ylabel("$C_l$")
     plt.legend()
     plt.title("Polaire de l'aile")
-
 
 
 if __name__ == '__main__':
@@ -57,7 +60,6 @@ if __name__ == '__main__':
     b = 0.3  # wingspan
     c_bar = 0.05  # mean chord
     surface = b*c_bar  # the surface of the wing “as seen from above”
-
 
     # Data from laboratory
     angle, drag, lift, p_dyn = extraction('Data.txt')
