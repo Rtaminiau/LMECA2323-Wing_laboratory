@@ -30,12 +30,17 @@ def plot_force(force, aoa, name):
     plt.title("coefficient de lift " if name == "C_l" else "coefficient de drag")
 
 
+def regression(l, d):
+    return np.poly1d(np.polyfit(d, l, 2))
+
 def mean_pressure(p):
     return np.mean(p)
 
 def plot_polar(l,d):
     plt.figure()
     plt.plot(d, l, label="donées expérimentale")
+    model = regression(l, d)
+    plt.plot(d, model(d), label="interpolation")
     plt.xlabel("$C_d$")
     plt.ylabel("$C_l$")
     plt.legend()
@@ -65,6 +70,5 @@ if __name__ == '__main__':
     plot_force(drag, angle, "C_d")
 
     plot_polar(lift, drag)
-
 
     plt.show()
