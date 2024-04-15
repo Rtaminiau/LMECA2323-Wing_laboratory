@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize
 
 
 def extraction(file):
@@ -62,6 +63,18 @@ def plot_Coeff_aoa(force,name):
     plt.ylabel(name)
     plt.title("coefficient de lift " if name == "C_l" else "coefficient de drag")
 
+def compute_max_lift_drag_ratio(lift,drag):
+    max = 0
+    max_index = 0
+    for i in range(len(lift)):
+        if lift[i]/drag[i] > max:
+            max = lift[i]/drag[i]
+            max_index = i
+    angle = np.linspace(-6, 20, len(lift))[max_index]
+    return angle,max
+
+def fit_func_polar(Cl,C_d0,k):
+    return C_d0 + k * Cl**2
 
 if __name__ == '__main__':
 
@@ -98,6 +111,27 @@ if __name__ == '__main__':
     plot_Coeff_aoa(lift_force,'C_l')
     plot_Coeff_aoa(drag_force,'C_d')
 
+    coeff = 0.5 * rho * u_infinity**2 * surface
+
+    C_l = lift_force/coeff
+    C_d = drag_force/coeff
+    plt.figure()
+    plt.plot(C_d,C_l)
+    plt.xlabel("C_d")
+    plt.ylabel("C_l")
+    plt.title("polar")
+
+    print("Angle and max lift to drag ratio : ",compute_max_lift_drag_ratio(C_l,C_d))
+
+    plt.figure()
+    plt.title("Polar with fit")
+    C_l_data = C_l[0:8]
+    C_d_data = C_d[0:8]
+    popt,pcov = scipy.optimize.curve_fit(fit_func_polar,C_l_data,C_d_data)
+    C_l_fit = np.linspace(-0.2,0.3,100)
+    plt.plot(fit_func_polar(C_l_fit,*popt),C_l_fit,color="orange")
+    plt.plot(C_d_data,C_l_data,color="blue")
+    print(f"C_D0 = {popt[0]} , k = {popt[1]} ")
 
     # mean dynamic pressure
     # p_mean = mean_pressure(p_dyn)
