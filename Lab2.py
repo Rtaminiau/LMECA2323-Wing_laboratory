@@ -55,8 +55,11 @@ def plot_polar(l, d):
     plt.title("Polaire de l'aile")
 
 def plot_Coeff_aoa(force,name):
-    aoa = np.linspace(-6,20,len(force))
+    aoa = angle
     C = force /(0.5 * rho * u_infinity**2 * surface)
+    if name == 'C_d':
+        C = C - Cd_arms
+        print("hello")
     plt.figure()
     plt.plot(aoa,C)
     plt.xlabel("Angle of attack [deg]")
@@ -87,26 +90,36 @@ if __name__ == '__main__':
     b = 0.3  # wingspan
     c_bar = 0.05  # mean chord
     surface = b * c_bar  # the surface of the wing “as seen from above”
+    Cd_arms = 0.06433
 
     rho = 1.204  # [kg/m3]
     g = 9.81
-    mu = 1.8e-5
+    nu = 1.5e-5
     u_infinity = np.sqrt(2 * rho * mean_pressure(p_dyn))
-    Re = rho * u_infinity * c_bar/mu
+    Re = u_infinity * c_bar/nu
+    print("Re : ",Re)
 
     # Calibration data
 
-    LIFT_V = np.array([-0.2,-0.16,-0.1,-0.04,0.02,0.14]) + (-0.209 + 0.2) # mets l'offset sur les tension de calibrage
-    LIFT_F = np.array([0,0.06816,0.181558,0.294956,0.408354,0.521752]) * g
+    LIFT_V = np.array([-0.2, -0.17, -0.11, -0.05, 0.01, 0.07, 0.13, 0.19, 0.25, 0.31, 0.57]) + (-0.209 + 0.2) # mets l'offset sur les tension de calibrage
+    LIFT_F = np.array([0, 0.0682, 0.181558, 0.294956, 0.4084, 0.5218, 0.6352, 0.7485, 0.861946, 0.9753, 1.4289]) * g
 
-    DRAG_V = np.array([0.71,1.02,1.54,2.07,2.59,3.14,4.2,5.24]) + (0.429 - 0.71)
-    DRAG_F = np.array([0,0.6816,0.181558,0.294956,0.40854,0.521752,0.748548,0.975344])* g
+    DRAG_V = np.array([0.38, 0.7, 1.23, 1.76, 2.3, 2.82, 3.89, 4.9]) + (0.429 - 0.38)
+    DRAG_F = np.array([0, 0.06816, 0.181558, 0.294956, 0.408354, 0.521752, 0.748548, 0.975344])* g
 
     model_Lift = Create_model_force(LIFT_V,LIFT_F)
     model_drag = Create_model_force(DRAG_V,DRAG_F)
 
     lift_force = model_Lift(lift_voltage)
     drag_force = model_drag(drag_voltage)
+    print("lift model :",model_Lift)
+    print("Drag model : ",model_drag)
+
+    u_values = np.linspace(-0.3,0.2,100)
+    plt.figure()
+    plt.plot(LIFT_V,LIFT_F)
+    plt.plot(u_values,model_Lift(u_values))
+
 
     plot_Coeff_aoa(lift_force,'C_l')
     plot_Coeff_aoa(drag_force,'C_d')
@@ -114,7 +127,7 @@ if __name__ == '__main__':
     coeff = 0.5 * rho * u_infinity**2 * surface
 
     C_l = lift_force/coeff
-    C_d = drag_force/coeff
+    C_d = drag_force/coeff - Cd_arms
     plt.figure()
     plt.plot(C_d,C_l)
     plt.xlabel("C_d")
@@ -125,14 +138,16 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.title("Polar with fit")
-    C_l_data = C_l[0:8]
-    C_d_data = C_d[0:8]
+    C_l_data = C_l[1:6]
+    C_d_data = C_d[1:6]
     popt,pcov = scipy.optimize.curve_fit(fit_func_polar,C_l_data,C_d_data)
     C_l_fit = np.linspace(-0.2,0.3,100)
     plt.plot(fit_func_polar(C_l_fit,*popt),C_l_fit,color="orange")
     plt.plot(C_d_data,C_l_data,color="blue")
+    print(popt)
     print(f"C_D0 = {popt[0]} , k = {popt[1]} ")
 
+    print("e : ",1/((b/c_bar) * np.pi * popt[1]))
     # mean dynamic pressure
     # p_mean = mean_pressure(p_dyn)
     #
