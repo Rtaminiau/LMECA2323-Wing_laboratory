@@ -9,13 +9,6 @@ def extraction(file):
     return (np.array(txt[1:, 0]), np.array(txt[1:, 1]),
             np.array(txt[1:, 2]), np.array(txt[1:, 3]))
 
-def plot_force(force, aoa, name):
-    plt.figure()
-    plt.plot(aoa, force)
-    plt.xlabel("angle d'attaque")
-    plt.ylabel("$"+name+"$")
-    plt.title("coefficient de lift " if name == "C_l" else "coefficient de drag")
-
 
 def mean_pressure(p):
     return np.mean(p)
@@ -23,16 +16,6 @@ def mean_pressure(p):
 def Create_model_force(X,Y):
     return np.poly1d(np.polyfit(X,Y,1))
 
-def plot_Coeff_aoa(force,name):
-    aoa = angle
-    C = force /(0.5 * rho * u_infinity**2 * surface)
-    if name == 'C_d':
-        C = C - Cd_arms
-    plt.figure()
-    plt.plot(aoa,C)
-    plt.xlabel("Angle of attack [deg]")
-    plt.ylabel(name)
-    plt.title("coefficient de lift " if name == "C_l" else "coefficient de drag")
 
 def compute_max_lift_drag_ratio(lift,drag):
     max = 0
@@ -112,30 +95,41 @@ if __name__ == '__main__':
     Cd = drag_force/coeff - Cd_arms
     Cl = lift_force/coeff
 
+    #graphes
+
     plt.figure()
     plt.plot(Cd,Cl)
-    plt.xlabel("C_d")
-    plt.ylabel("C_l")
-    plt.title("polar")
+    plt.xlabel(r"$C_D$ [/]")
+    plt.ylabel(r"$C_L$ [/]")
+    plt.grid()
 
     plt.figure()
     plt.plot(angle,Cd)
-    plt.title("Cd/angle graphe")
+    plt.xlabel("Angle of attack [deg]")
+    plt.ylabel(r" $C_D$ [/]")
+    plt.grid()
 
     plt.figure()
     plt.plot(angle,Cl)
-    plt.title("Cl/angle graphe")
+    plt.ylabel(r"$C_L$ [/]")
+    plt.xlabel("Angle of attack [deg]")
+    plt.grid()
 
     print("Angle and max lift to drag ratio : ",compute_max_lift_drag_ratio(Cl,Cd))
 
-    plt.figure()
-    plt.title("Polar with fit")
+
     C_l_data = Cl[1:6]
     C_d_data = Cd[1:6]
     popt,pcov = scipy.optimize.curve_fit(fit_func_polar,C_l_data,C_d_data)
     C_l_fit = np.linspace(-0.2,0.3,100)
-    plt.plot(fit_func_polar(C_l_fit,*popt),C_l_fit,color="orange")
-    plt.plot(C_d_data,C_l_data,color="blue")
+
+    plt.figure()
+    plt.xlabel(r"$C_D$ [/]")
+    plt.ylabel(r"$C_L$ [/]")
+    plt.plot(fit_func_polar(C_l_fit,*popt),C_l_fit,color="orange",label="Polar fit")
+    plt.plot(C_d_data,C_l_data,color="blue",label="Polar from measurements")
+    plt.grid()
+    plt.legend()
     print(popt)
     print(f"C_D0 = {popt[0]} , k = {popt[1]} ")
 
